@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-frontend:
+    name: Frontend lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @stylesense/frontend lint
+
+  lint-backend:
+    name: Backend lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - run: ruff check backend/app
+      - run: ruff format --check backend/app
+
+  test-backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e "backend[dev]" aiosqlite httpx
+      - run: pytest backend/tests -v --tb=short
+
+  test-e2e:
+    name: E2E smoke tests
+    runs-on: ubuntu-latest
+    needs: [lint-frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @stylesense/frontend exec playwright install --with-deps chromium
+      - name: Build frontend
+        run: pnpm --filter @stylesense/frontend build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      - name: Run E2E (public pages only — no backend needed)
+        run: pnpm --filter @stylesense/frontend exec playwright test tests/e2e/auth.spec.ts --project=chromium
+        env:
+          BASE_URL: http://localhost:3000

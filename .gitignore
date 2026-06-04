@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+.venv/
+*.egg-info/
+
+# Build outputs
+.next/
+dist/
+build/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+
+# Python tooling
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Test output
+coverage/
+
+# Logs
+*.log
+
+# AI-generated static files (recreated at runtime)
+backend/static/generated/
+
+# Claude / AI tooling
+.claude/
+memory/
+prompt.md
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+
+tests/
+static/
+backend/app/core/config.py
+frontend/.env.example
