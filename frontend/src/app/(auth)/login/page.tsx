@@ -29,7 +29,7 @@ export default function LoginPage() {
     try {
       const { data: res } = await apiClient.post('/auth/login', data);
       setAuth(res.user, res.access_token, res.refresh_token);
-      router.push('/dashboard');
+      router.push(res.user.role === 'super_admin' ? '/admin' : '/dashboard');
     } catch {
       setError('Invalid email or password');
     }
@@ -39,11 +39,10 @@ export default function LoginPage() {
     <div
       className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden font-inter"
       style={{
-        background: `
-          radial-gradient(ellipse at 30% 30%, rgba(255,219,200,0.5) 0%, transparent 55%),
-          radial-gradient(ellipse at 70% 70%, rgba(196,237,167,0.2) 0%, transparent 50%),
-          #fcf9f4
-        `,
+        backgroundImage: `url('/salon-bg.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       <div className="glass-panel w-full max-w-md p-8 shadow-glass-lg">

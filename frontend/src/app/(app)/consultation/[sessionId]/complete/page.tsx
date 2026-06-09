@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Camera, Upload, CheckCircle, RotateCcw, Star } from 'lucide-react';
-import { useSession, useUploadFinalPhoto } from '@/lib/queries/sessions';
+import { useSession, useUploadFinalPhoto, useCompleteSession } from '@/lib/queries/sessions';
 import { uploadPhoto, dataUrlToFile } from '@/lib/upload';
 
 export default function CompletePage() {
@@ -21,6 +21,7 @@ export default function CompletePage() {
 
   const { data: session } = useSession(sessionId);
   const uploadFinal = useUploadFinalPhoto(sessionId);
+  const completeSession = useCompleteSession(sessionId);
 
   const selectedStyle = session?.hairstyles?.find((h) => h.id === session.selected_hairstyle_id);
 
@@ -62,19 +63,17 @@ export default function CompletePage() {
     setSaving(true);
     setError('');
     try {
-      let photoUrl = afterPhoto;
       if (withPhoto && afterPhoto) {
+        let photoUrl = afterPhoto;
         try {
           const file = dataUrlToFile(afterPhoto);
           photoUrl = await uploadPhoto(file, 'after-photos');
         } catch {
-          photoUrl = afterPhoto; // fallback
+          // fallback to data URL
         }
-      }
-      if (photoUrl && withPhoto) {
         await uploadFinal.mutateAsync(photoUrl);
       } else {
-        await uploadFinal.mutateAsync('');
+        await completeSession.mutateAsync({});
       }
       router.push('/dashboard');
     } catch (e: unknown) {

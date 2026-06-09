@@ -12,6 +12,7 @@ import {
   Search,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { useDashboardStats, useRecentSessions, usePopularStyles } from '@/lib/queries/dashboard';
 
@@ -29,6 +30,11 @@ export default function DashboardPage() {
   const { data: stats } = useDashboardStats();
   const { data: recentSessions } = useRecentSessions();
   const { data: popularStyles } = usePopularStyles();
+  const [dateLabel, setDateLabel] = useState('');
+
+  useEffect(() => {
+    setDateLabel(new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }));
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -45,7 +51,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-xl font-bold text-on-surface">Dashboard</h1>
             <p className="text-sm" style={{ color: 'rgba(28,28,25,0.45)' }}>
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              {dateLabel}
             </p>
           </div>
           <div className="flex items-center gap-3">

@@ -12,7 +12,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (checked.current) return;
     checked.current = true;
-    if (!isAuthenticated()) router.replace('/login');
+    useAuthStore.persist.rehydrate();
+    setTimeout(() => {
+      if (!isAuthenticated()) router.replace('/login');
+    }, 0);
   }, [isAuthenticated, router]);
 
   return (

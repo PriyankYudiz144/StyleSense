@@ -87,15 +87,24 @@ export function useAnalyzeFace(sessionId: string) {
 }
 
 export function useGenerateHairstyles(sessionId: string) {
-  const qc = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      const { data } = await apiClient.post<Hairstyle[]>(`/sessions/${sessionId}/generate-hairstyles`);
+    mutationFn: async (gender: 'male' | 'female' = 'female') => {
+      const { data } = await apiClient.post<{ status: string; count: number }>(
+        `/sessions/${sessionId}/generate-hairstyles?gender=${gender}`
+      );
       return data;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: sessionKeys.detail(sessionId) });
-      qc.invalidateQueries({ queryKey: sessionKeys.hairstyles(sessionId) });
+  });
+}
+
+export function useValidatePhoto() {
+  return useMutation({
+    mutationFn: async (photo_url: string) => {
+      const { data } = await apiClient.post<{ valid: boolean; reason: string }>(
+        '/sessions/validate-photo',
+        { photo_url }
+      );
+      return data;
     },
   });
 }

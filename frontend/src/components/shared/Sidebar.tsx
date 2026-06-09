@@ -17,7 +17,6 @@ export function Sidebar() {
   const router = useRouter();
   const { user, clearAuth } = useAuthStore();
 
-  // Warm up all nav routes so first click is instant
   useEffect(() => {
     NAV_ITEMS.forEach(({ href }) => router.prefetch(href));
   }, [router]);

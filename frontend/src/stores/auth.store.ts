@@ -50,6 +50,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'stylesense-auth',
+      skipHydration: true,
       partialize: (s) => ({ user: s.user, accessToken: s.accessToken, refreshToken: s.refreshToken }),
     }
   )

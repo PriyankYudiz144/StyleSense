@@ -116,7 +116,7 @@ export default function CustomersPage() {
                     <td className="px-4 py-3 text-sm" style={{ color: 'rgba(28,28,25,0.6)' }}>
                       {c.phone ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-xs" style={{ color: 'rgba(28,28,25,0.4)' }}>
+                    <td className="px-4 py-3 text-xs" style={{ color: 'rgba(28,28,25,0.4)' }} suppressHydrationWarning>
                       {new Date(c.created_at).toLocaleDateString()}
                     </td>
                   </tr>

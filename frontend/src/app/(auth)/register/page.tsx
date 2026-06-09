@@ -58,11 +58,10 @@ export default function RegisterPage() {
     <div
       className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden font-inter"
       style={{
-        background: `
-          radial-gradient(ellipse at 20% 20%, rgba(255,219,200,0.5) 0%, transparent 55%),
-          radial-gradient(ellipse at 80% 80%, rgba(196,237,167,0.2) 0%, transparent 50%),
-          #fcf9f4
-        `,
+        backgroundImage: `url('/salon-bg.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       <div className="glass-panel w-full max-w-lg p-8 shadow-glass-lg my-8">

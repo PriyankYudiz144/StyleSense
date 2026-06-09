@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Check, Scissors, Home, Camera, User, Settings } from 'lucide-react';
+import { Check, Scissors } from 'lucide-react';
 
 const PLANS = [
   {
@@ -12,7 +12,7 @@ const PLANS = [
     priceDisplay: 'Free',
     annualPrice: null,
     description: 'Perfect to experience the elegance.',
-    features: ['Up to 50 clients', 'Basic scheduling'],
+    features: ['50 AI credits', 'Up to 50 clients', 'Basic scheduling'],
     cta: 'Start Free Trial',
     ctaHref: '/register',
     highlighted: false,
@@ -24,7 +24,7 @@ const PLANS = [
     price: 29,
     annualPrice: 23,
     description: 'For independent stylists.',
-    features: ['Up to 200 clients', 'Online booking', 'SMS reminders'],
+    features: ['200 AI credits', 'Up to 200 clients', 'Online booking', 'SMS reminders'],
     cta: 'Get Started',
     ctaHref: '/register?plan=starter',
     highlighted: false,
@@ -37,6 +37,7 @@ const PLANS = [
     annualPrice: 63,
     description: 'Everything a growing salon needs.',
     features: [
+      '500 AI credits',
       'Unlimited clients',
       'Advanced reporting',
       'Staff management (up to 5)',
@@ -54,7 +55,7 @@ const PLANS = [
     annualPrice: null,
     priceDisplay: 'Custom',
     description: 'For multi-location franchises.',
-    features: ['Multiple locations', 'Custom API access', 'Dedicated success manager'],
+    features: ['3,000 AI credits', 'Multiple locations', 'Custom API access', 'Dedicated success manager'],
     cta: 'Contact Sales',
     ctaHref: '/contact',
     highlighted: false,
@@ -65,53 +66,152 @@ const PLANS = [
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
 
-  return (
-    <div className="min-h-screen font-inter overflow-x-hidden" style={{
-      background: 'linear-gradient(135deg, #fcf9f4 0%, #ffdbc8 100%)',
-      color: '#1c1c19',
-    }}>
+  useEffect(() => {
+    // Scroll reveal
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('reveal-active'); }),
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    setTimeout(() => document.querySelector('nav')?.classList.add('reveal-active'), 100);
+    return () => observer.disconnect();
+  }, []);
 
-      {/* Desktop Nav */}
-      <nav className="hidden md:flex fixed top-4 left-0 right-0 z-50 mx-auto max-w-5xl px-4">
-        <div className="glass-nav flex items-center justify-between w-full px-8 py-3">
-          <Link href="/" className="text-2xl font-bold" style={{ color: '#8b4b1e' }}>
-            StyleSense
-          </Link>
-          <div className="flex items-center gap-8">
-            <Link href="/" className="text-sm font-medium transition-colors hover:text-on-surface px-3 py-1 rounded-full" style={{ color: 'rgba(83,68,59,0.8)' }}>
-              Landing
-            </Link>
-            <Link href="/pricing" className="text-sm font-bold px-3 py-1 rounded-full border-b-2" style={{ color: '#8b4b1e', borderColor: '#8b4b1e' }}>
-              Pricing
-            </Link>
+  return (
+    <>
+      <style suppressHydrationWarning>{`
+        .lp-glass {
+          background-color: rgba(252,249,244,0.4);
+          backdrop-filter: blur(32px);
+          -webkit-backdrop-filter: blur(32px);
+          border-top: 1px solid rgba(255,255,255,0.4);
+          box-shadow: 0 8px 32px 0 rgba(0,0,0,0.08);
+          border-radius: 24px;
+          position: relative;
+          overflow: hidden;
+          transition: all 0.6s cubic-bezier(0.22,1,0.36,1);
+        }
+        .lp-glass:not(.plan-card-highlighted)::after {
+          content: '';
+          position: absolute;
+          top: -50%; left: -50%;
+          width: 200%; height: 200%;
+          background: linear-gradient(45deg, transparent 35%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.1) 50%, transparent 55%);
+          transform: rotate(-45deg);
+          animation: shimmer 8s infinite linear;
+          pointer-events: none;
+        }
+        .plan-card-highlighted .shimmer-inner {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 24px;
+          overflow: hidden;
+          pointer-events: none;
+        }
+        @keyframes shimmer {
+          0%   { transform: translateX(-100%) rotate(-45deg); }
+          100% { transform: translateX(100%)  rotate(-45deg); }
+        }
+        .lp-glass-dark {
+          background-color: rgba(49,48,45,0.6);
+          backdrop-filter: blur(32px);
+          -webkit-backdrop-filter: blur(32px);
+          border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .reveal {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1), transform 0.8s cubic-bezier(0.22,1,0.36,1);
+        }
+        .reveal-active { opacity: 1; transform: translateY(0); }
+        .premium-transition { transition: all 0.6s cubic-bezier(0.22,1,0.36,1); }
+        .btn-glow:hover { box-shadow: 0 0 20px rgba(139,75,30,0.4); transform: scale(1.02); }
+        .plan-card:hover { transform: translateY(-6px); }
+        .plan-card-highlighted { transform: scale(1.04); z-index: 10; overflow: visible !important; }
+        .plan-card-highlighted:hover { transform: scale(1.04) translateY(-6px); }
+      `}</style>
+
+      {/* Fixed background — same as landing */}
+      <div className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url('/salon-bg.jpg')` }}>
+        <div className="absolute inset-0" style={{ background: 'rgba(252,249,244,0.25)', mixBlendMode: 'overlay' }} />
+      </div>
+
+      {/* Desktop Nav — identical to landing */}
+      <nav className="reveal fixed top-4 left-0 right-0 z-50 hidden md:flex justify-between items-center px-8 py-3 premium-transition"
+        style={{
+          maxWidth: '1440px',
+          background: 'rgba(252,249,244,0.4)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRadius: '9999px',
+          borderTop: '1px solid rgba(255,255,255,0.12)',
+          boxShadow: '0 8px 32px 0 rgba(0,0,0,0.08)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'calc(100% - 128px)',
+        }}>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#8b4b1e' }}>
+            <Scissors size={16} className="text-white" />
           </div>
-          <Link href="/login" className="text-sm font-semibold px-6 py-2 rounded-full border transition-colors hover:opacity-90" style={{ background: 'rgba(139,75,30,0.1)', color: '#8b4b1e', borderColor: 'rgba(139,75,30,0.2)' }}>
+          <span className="font-bold tracking-tight" style={{ fontSize: '20px', color: '#8b4b1e' }}>StyleSense</span>
+        </div>
+        <ul className="flex space-x-8 items-center">
+          <li>
+            <Link className="text-sm premium-transition px-3 py-2 block rounded-md"
+              style={{ color: 'rgba(83,68,59,0.8)' }} href="/">Home</Link>
+          </li>
+          <li>
+            <a className="text-sm font-bold border-b-2 pb-1 px-2 premium-transition"
+              style={{ color: '#8b4b1e', borderColor: '#8b4b1e' }} href="#">Pricing</a>
+          </li>
+        </ul>
+        <div className="flex items-center gap-3">
+          <Link href="/login"
+            className="text-sm font-semibold px-6 py-2 rounded-full border premium-transition active:scale-95"
+            style={{ color: '#8b4b1e', borderColor: 'rgba(139,75,30,0.2)' }}>
             Sign In
+          </Link>
+          <Link href="/register"
+            className="text-sm font-semibold px-6 py-2 rounded-full premium-transition active:scale-95"
+            style={{ background: '#8b4b1e', color: '#fff' }}>
+            Sign Up
           </Link>
         </div>
       </nav>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center h-20 rounded-t-2xl border-t" style={{ background: 'rgba(252,249,244,0.6)', backdropFilter: 'blur(16px)', borderColor: 'rgba(255,255,255,0.2)' }}>
-        {[
-          { icon: <Home size={22} />, label: 'Home', href: '/' },
-          { icon: <Camera size={22} />, label: 'Scan', href: '#' },
-          { icon: <User size={22} />, label: 'Clients', href: '#' },
-          { icon: <Settings size={22} />, label: 'Settings', href: '#' },
-        ].map((item) => (
-          <Link key={item.label} href={item.href} className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-transform active:scale-90" style={{ color: 'rgba(83,68,59,0.7)' }}>
-            {item.icon}
-            <span className="text-xs font-semibold">{item.label}</span>
+      {/* Mobile Nav */}
+      <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-4 py-4 md:hidden"
+        style={{ background: 'rgba(252,249,244,0.4)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#8b4b1e' }}>
+            <Scissors size={14} className="text-white" />
+          </div>
+          <span className="font-bold" style={{ fontSize: '20px', color: '#8b4b1e' }}>StyleSense</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link href="/login" className="text-sm font-semibold" style={{ color: '#8b4b1e' }}>Sign In</Link>
+          <Link href="/register"
+            className="text-sm font-semibold px-4 py-1.5 rounded-full"
+            style={{ background: '#8b4b1e', color: '#fff' }}>
+            Sign Up
           </Link>
-        ))}
+        </div>
       </nav>
 
       {/* Main */}
-      <main className="pt-32 md:pt-48 pb-32 px-5 md:px-16 max-w-7xl mx-auto">
+      <main className="relative z-10 pt-32 md:pt-44 pb-24 px-5 md:px-16 max-w-[1440px] mx-auto"
+        style={{ fontFamily: 'Inter, sans-serif' }}>
 
         {/* Header */}
-        <header className="text-center mb-16 max-w-3xl mx-auto">
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-6" style={{ color: '#1c1c19' }}>
+        <div className="text-center mb-16 max-w-3xl mx-auto reveal">
+          <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(139,75,30,0.7)' }}>
+            Simple Pricing
+          </p>
+          <h1 className="font-bold tracking-tight mb-5"
+            style={{ fontSize: 'clamp(32px,5vw,48px)', lineHeight: '1.1', letterSpacing: '-0.02em', color: '#1c1c19' }}>
             Built for salons of every size
           </h1>
           <p className="text-lg leading-relaxed mb-10" style={{ color: 'rgba(83,68,59,0.8)' }}>
@@ -119,106 +219,114 @@ export default function PricingPage() {
           </p>
 
           {/* Billing Toggle */}
-          <div className="inline-flex relative p-1 rounded-full border" style={{ background: 'rgba(229,226,221,0.5)', borderColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)' }}>
-            {/* sliding bg */}
+          <div className="inline-flex relative p-1 rounded-full"
+            style={{ background: 'rgba(229,226,221,0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)' }}>
             <div
-              className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full shadow-sm transition-transform duration-300"
+              className="absolute top-1 bottom-1 rounded-full shadow-sm transition-all duration-300"
               style={{
                 background: '#fcf9f4',
-                transform: annual ? 'translateX(100%)' : 'translateX(0)',
+                width: 'calc(50% - 4px)',
                 left: 4,
+                transform: annual ? 'translateX(100%)' : 'translateX(0)',
               }}
             />
-            <button
-              onClick={() => setAnnual(false)}
+            <button onClick={() => setAnnual(false)}
               className="relative z-10 text-sm font-semibold px-8 py-3 rounded-full transition-colors"
-              style={{ color: '#1c1c19' }}
-            >
+              style={{ color: '#1c1c19' }}>
               Monthly
             </button>
-            <button
-              onClick={() => setAnnual(true)}
+            <button onClick={() => setAnnual(true)}
               className="relative z-10 text-sm font-semibold px-8 py-3 rounded-full transition-colors"
-              style={{ color: annual ? '#1c1c19' : 'rgba(83,68,59,0.7)' }}
-            >
+              style={{ color: annual ? '#1c1c19' : 'rgba(83,68,59,0.7)' }}>
               Annually <span style={{ color: '#8b4b1e' }}>-20%</span>
             </button>
           </div>
-        </header>
+        </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-          {PLANS.map((plan) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-center pt-6">
+          {PLANS.map((plan, i) => (
             <div
               key={plan.id}
-              className={`relative flex flex-col rounded-3xl p-8 transition-transform duration-300 ${
-                plan.highlighted ? 'scale-105 z-10' : 'hover:-translate-y-1'
-              }`}
-              style={plan.highlighted ? {
-                background: 'rgba(252,249,244,0.6)',
-                backdropFilter: 'blur(40px)',
-                WebkitBackdropFilter: 'blur(40px)',
-                borderTop: '1px solid rgba(255,255,255,0.3)',
-                boxShadow: '0 16px 48px 0 rgba(139,75,30,0.15)',
-              } : {
-                background: 'rgba(252,249,244,0.4)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                borderTop: '1px solid rgba(255,255,255,0.12)',
-                boxShadow: '0 8px 32px 0 rgba(0,0,0,0.08)',
+              className={`reveal lp-glass flex flex-col p-8 ${plan.highlighted ? 'plan-card-highlighted' : 'plan-card'}`}
+              style={{
+                transitionDelay: `${i * 80}ms`,
+                ...(plan.highlighted ? {
+                  background: 'rgba(252,249,244,0.65)',
+                  backdropFilter: 'blur(48px)',
+                  WebkitBackdropFilter: 'blur(48px)',
+                  boxShadow: '0 20px 60px rgba(139,75,30,0.18)',
+                  borderTop: '1px solid rgba(255,255,255,0.5)',
+                } : {}),
               }}
             >
+              {/* Shimmer overlay clipped inside card bounds for highlighted card */}
+              {plan.highlighted && (
+                <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+                  <div style={{
+                    position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%',
+                    background: 'linear-gradient(45deg, transparent 35%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.1) 50%, transparent 55%)',
+                    animation: 'shimmer 8s infinite linear',
+                  }} />
+                </div>
+              )}
               {plan.badge && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md whitespace-nowrap" style={{ background: '#8b4b1e' }}>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md whitespace-nowrap"
+                  style={{ background: '#8b4b1e', zIndex: 20 }}>
                   {plan.badge}
                 </div>
               )}
 
-              <div className="mb-8">
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4" style={plan.highlighted ? { background: 'rgba(139,75,30,0.1)', color: '#8b4b1e' } : { background: '#e5e2dd', color: '#53443b' }}>
-                  {plan.label}
-                </span>
+              {/* Plan label */}
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-5 self-start"
+                style={plan.highlighted
+                  ? { background: 'rgba(139,75,30,0.1)', color: '#8b4b1e' }
+                  : { background: 'rgba(229,226,221,0.6)', color: '#53443b' }}>
+                {plan.label}
+              </span>
 
-                {/* Price */}
+              {/* Price */}
+              <div className="mb-2">
                 {plan.priceDisplay ? (
-                  <h2 className="text-2xl font-bold mb-2">{plan.priceDisplay}</h2>
+                  <h2 className="font-bold" style={{ fontSize: '32px', color: '#1c1c19', letterSpacing: '-0.02em' }}>
+                    {plan.priceDisplay}
+                  </h2>
                 ) : (
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-2xl font-bold">${annual ? plan.annualPrice : plan.price}</span>
+                  <div className="flex items-baseline gap-1">
+                    <h2 className="font-bold" style={{ fontSize: '32px', color: '#1c1c19', letterSpacing: '-0.02em' }}>
+                      ${annual ? plan.annualPrice : plan.price}
+                    </h2>
                     <span className="text-sm" style={{ color: 'rgba(83,68,59,0.6)' }}>/mo</span>
                   </div>
                 )}
-                <p className="text-sm" style={{ color: 'rgba(83,68,59,0.7)' }}>{plan.description}</p>
               </div>
+              <p className="text-sm mb-8" style={{ color: 'rgba(83,68,59,0.7)' }}>{plan.description}</p>
 
               {/* Features */}
-              <ul className="space-y-4 flex-1 mb-8">
+              <ul className="space-y-3 flex-1 mb-8">
                 {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm">
-                    <Check
-                      size={16}
-                      className="mt-0.5 flex-shrink-0"
-                      style={{ color: plan.highlighted ? '#8b4b1e' : '#8b4b1e' }}
-                      strokeWidth={plan.highlighted ? 2.5 : 2}
-                    />
+                  <li key={f} className="flex items-start gap-2.5 text-sm" style={{ color: '#1c1c19' }}>
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{ background: plan.highlighted ? 'rgba(139,75,30,0.12)' : 'rgba(229,226,221,0.6)' }}>
+                      <Check size={11} style={{ color: '#8b4b1e' }} strokeWidth={3} />
+                    </div>
                     {f}
                   </li>
                 ))}
               </ul>
 
-              <Link
-                href={plan.ctaHref}
-                className="block w-full py-3 px-6 rounded-full text-sm font-semibold text-center transition-all"
+              <Link href={plan.ctaHref}
+                className="block w-full py-3.5 px-6 rounded-full text-sm font-semibold text-center premium-transition btn-glow"
                 style={plan.highlighted ? {
                   background: '#8b4b1e',
                   color: '#fff',
-                  boxShadow: '0 4px 14px rgba(139,75,30,0.3)',
+                  boxShadow: '0 4px 16px rgba(139,75,30,0.3)',
                 } : {
-                  background: 'rgba(229,226,221,0.5)',
+                  background: 'rgba(252,249,244,0.6)',
+                  backdropFilter: 'blur(12px)',
                   color: '#1c1c19',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                }}
-              >
+                  border: '1px solid rgba(217,194,182,0.5)',
+                }}>
                 {plan.cta}
               </Link>
             </div>
@@ -226,7 +334,7 @@ export default function PricingPage() {
         </div>
 
         {/* Footer note */}
-        <p className="text-center text-sm mt-14" style={{ color: 'rgba(83,68,59,0.5)' }}>
+        <p className="text-center text-sm mt-20 reveal" style={{ color: 'rgba(83,68,59,0.8)' }}>
           All plans include a 14-day money-back guarantee.{' '}
           <a href="mailto:hello@stylesense.ai" style={{ color: '#8b4b1e' }} className="hover:underline">
             Contact us
@@ -234,6 +342,27 @@ export default function PricingPage() {
           with any questions.
         </p>
       </main>
-    </div>
+
+      {/* Footer — same as landing */}
+      <footer className="lp-glass-dark relative z-20 w-full py-12 px-5 md:px-16 mt-12 premium-transition">
+        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)' }}>
+              <Scissors size={14} className="text-white" />
+            </div>
+            <span className="font-bold tracking-tight opacity-90" style={{ fontSize: '24px', color: '#f3f0eb' }}>StyleSense</span>
+          </div>
+          <div className="flex space-x-6 opacity-70">
+            {['Privacy', 'Terms', 'Contact'].map(l => (
+              <a key={l} href="#" className="premium-transition hover:opacity-100"
+                style={{ fontSize: '16px', lineHeight: '24px', color: '#f3f0eb' }}>{l}</a>
+            ))}
+          </div>
+          <p style={{ fontSize: '14px', color: 'rgba(243,240,235,0.5)' }}>
+            © 2024 StyleSense Studio. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </>
   );
 }

@@ -11,7 +11,7 @@ import {
   Phone,
   Scissors,
 } from 'lucide-react';
-import { useCreateSession } from '@/lib/queries/sessions';
+import { useCreateSession, useValidatePhoto } from '@/lib/queries/sessions';
 import { useCreateCustomer } from '@/lib/queries/customers';
 import { uploadPhoto, dataUrlToFile } from '@/lib/upload';
 
@@ -31,9 +31,12 @@ export default function NewConsultationPage() {
   const [error, setError] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [gender, setGender] = useState<'male' | 'female'>('female');
 
   const createSession = useCreateSession();
   const createCustomer = useCreateCustomer();
+  const validatePhoto = useValidatePhoto();
+  const [validating, setValidating] = useState(false);
 
   const startCamera = async () => {
     setError('');
@@ -85,8 +88,21 @@ export default function NewConsultationPage() {
     setError('');
   };
 
-  const proceed = () => {
+  const proceed = async () => {
     if (!capturedImage) return;
+    setValidating(true);
+    setError('');
+    try {
+      const result = await validatePhoto.mutateAsync(capturedImage);
+      if (!result.valid) {
+        setError(result.reason || 'No clear face detected. Please use a photo with a single visible face.');
+        setValidating(false);
+        return;
+      }
+    } catch {
+      // validation API failed — allow proceeding
+    }
+    setValidating(false);
     setStep('customer');
   };
 
@@ -124,7 +140,7 @@ export default function NewConsultationPage() {
       });
       setUploadProgress(100);
 
-      router.push(`/consultation/${session.id}/analyzing`);
+      router.push(`/consultation/${session.id}/analyzing?gender=${gender}`);
     } catch (e: unknown) {
       const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
       setError(msg ?? 'Failed to start consultation. Please try again.');
@@ -255,9 +271,16 @@ export default function NewConsultationPage() {
                       </button>
                     </div>
                   </div>
-                  <button onClick={proceed} className="btn-primary w-full justify-center">
-                    Continue
-                    <ArrowRight size={18} />
+                  <button onClick={proceed} disabled={validating} className="btn-primary w-full justify-center">
+                    {validating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 rounded-full animate-spin"
+                          style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
+                        Validating photo…
+                      </>
+                    ) : (
+                      <>Continue <ArrowRight size={18} /></>
+                    )}
                   </button>
                 </>
               )}
@@ -275,6 +298,25 @@ export default function NewConsultationPage() {
                   <p className="text-sm font-semibold text-on-surface">Client info (optional)</p>
                   <p className="text-xs" style={{ color: 'rgba(28,28,25,0.45)' }}>Skip to continue as walk-in</p>
                 </div>
+              </div>
+
+              {/* Gender selector */}
+              <div className="flex gap-3">
+                {(['female', 'male'] as const).map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGender(g)}
+                    className="flex-1 py-2.5 rounded-2xl text-sm font-semibold transition-all capitalize"
+                    style={
+                      gender === g
+                        ? { background: '#8b4b1e', color: '#fff', border: '1.5px solid #8b4b1e' }
+                        : { background: 'transparent', color: 'rgba(28,28,25,0.6)', border: '1.5px solid rgba(217,194,182,0.5)' }
+                    }
+                  >
+                    {g === 'female' ? '♀ Female' : '♂ Male'}
+                  </button>
+                ))}
               </div>
 
               <div className="space-y-3">
