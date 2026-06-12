@@ -14,6 +14,7 @@ class UserOut(BaseModel):
     email: EmailStr
     full_name: str
     role: UserRole
+    avatar_url: str | None = None
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -30,6 +31,11 @@ class UserUpdate(BaseModel):
     full_name: str | None = None
     role: UserRole | None = None
     is_active: bool | None = None
+
+
+class ProfileUpdate(BaseModel):
+    full_name: str | None = None
+    avatar_url: str | None = None
 
 
 class UserInvite(BaseModel):

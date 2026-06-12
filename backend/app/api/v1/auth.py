@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import CurrentUser, get_session
-from app.schemas.auth import LoginRequest, RefreshRequest, RegisterSalonRequest, TokenResponse
+from app.schemas.auth import ForgotPasswordRequest, LoginRequest, RefreshRequest, RegisterSalonRequest, ResetPasswordRequest, TokenResponse
 from app.schemas.user import UserOut
 from app.services.auth_service import AuthService
 
@@ -44,6 +44,31 @@ async def refresh(
         return await AuthService(db).refresh(data.refresh_token)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    data: ForgotPasswordRequest,
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    from app.core.config import settings
+    token = await AuthService(db).forgot_password(data.email)
+    response: dict = {"message": "If that email is registered, a reset link has been sent."}
+    if token and not settings.resend_api_key:
+        response["dev_token"] = token
+    return response
+
+
+@router.post("/reset-password")
+async def reset_password(
+    data: ResetPasswordRequest,
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    try:
+        await AuthService(db).reset_password(data.token, data.new_password)
+        return {"message": "Password reset successfully."}
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
 
 @router.post("/logout")

@@ -4,7 +4,8 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import create_access_token, create_refresh_token, decode_token, hash_password, verify_password
+from app.core.security import create_access_token, create_refresh_token, create_reset_token, decode_token, hash_password, verify_password
+from app.services.email_service import EmailService
 from app.models.salon import Salon, SubscriptionTier
 from app.models.user import User, UserRole
 from app.schemas.auth import RegisterSalonRequest, TokenResponse
@@ -61,6 +62,29 @@ class AuthService:
             access_token=create_access_token(user.id),
             refresh_token=create_refresh_token(user.id),
         )
+
+    async def forgot_password(self, email: str) -> str | None:
+        from app.core.config import settings as _settings
+        result = await self.db.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+        if not user or not user.is_active:
+            return None
+        token = create_reset_token(user.id)
+        reset_link = f"{_settings.frontend_url}/reset-password?token={token}"
+        await EmailService().send_reset_password(email, reset_link)
+        return token
+
+    async def reset_password(self, token: str, new_password: str) -> None:
+        payload = decode_token(token)
+        if payload.get("type") != "reset":
+            raise ValueError("Invalid token type")
+        result = await self.db.execute(select(User).where(User.id == uuid.UUID(payload["sub"])))
+        user = result.scalar_one_or_none()
+        if not user or not user.is_active:
+            raise ValueError("User not found")
+        loop = asyncio.get_running_loop()
+        user.password_hash = await loop.run_in_executor(None, hash_password, new_password)
+        await self.db.commit()
 
     async def refresh(self, refresh_token: str) -> TokenResponse:
         payload = decode_token(refresh_token)

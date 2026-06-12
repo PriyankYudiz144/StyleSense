@@ -33,6 +33,15 @@ def create_refresh_token(subject: str | Any) -> str:
     )
 
 
+def create_reset_token(subject: str | Any) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(hours=1)
+    return jwt.encode(
+        {"sub": str(subject), "exp": expire, "type": "reset"},
+        settings.jwt_secret_key,
+        algorithm=settings.jwt_algorithm,
+    )
+
+
 def decode_token(token: str) -> dict[str, Any]:
     try:
         return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])

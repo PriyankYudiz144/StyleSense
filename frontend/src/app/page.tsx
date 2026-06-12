@@ -146,7 +146,7 @@ export default function LandingPage() {
           -webkit-backdrop-filter: blur(32px);
           border-top: 1px solid rgba(255,255,255,0.4);
           box-shadow: 0 8px 32px 0 rgba(0,0,0,0.08);
-          border-radius: 24px;
+          border-radius: 15px;
           position: relative;
           overflow: hidden;
           transition: all 0.6s cubic-bezier(0.22,1,0.36,1);
@@ -339,16 +339,26 @@ export default function LandingPage() {
         <section id="pricing" className="py-24 px-5 md:px-16" style={{ maxWidth: '1440px', margin: '0 auto' }}>
           {/* Pricing header */}
           <div className="text-center mb-16 max-w-3xl mx-auto reveal">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(139,75,30,0.7)' }}>
-              Simple Pricing
-            </p>
-            <h2 className="font-bold tracking-tight mb-5"
-              style={{ fontSize: 'clamp(28px,4vw,42px)', lineHeight: '1.1', letterSpacing: '-0.02em', color: '#1c1c19' }}>
-              Built for salons of every size
-            </h2>
-            <p className="text-lg leading-relaxed mb-10" style={{ color: 'rgba(83,68,59,0.8)' }}>
-              Simple, transparent pricing to help you manage your bookings, clients, and growth with elegance.
-            </p>
+            <div className="relative px-10 py-8 mb-10">
+              {/* Smooth radial blur — fades at edges, no hard box */}
+              <div className="absolute inset-0 pointer-events-none" style={{
+                backdropFilter: 'blur(98px)',
+                WebkitBackdropFilter: 'blur(98px)',
+                background: 'rgba(252,249,244,0.28)',
+                WebkitMaskImage: 'radial-gradient(ellipse 90% 100% at 50% 50%, black 30%, transparent 75%)',
+                maskImage: 'radial-gradient(ellipse 90% 100% at 50% 50%, black 30%, transparent 75%)',
+              }} />
+              <p className="relative text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(139,75,30,0.7)' }}>
+                Simple Pricing
+              </p>
+              <h2 className="relative font-bold tracking-tight mb-5"  
+                style={{ fontSize: 'clamp(28px,4vw,42px)', lineHeight: '1.1', letterSpacing: '-0.02em', color: '#1c1c19' }}>
+                Built for salons of every size
+              </h2>
+              <p className="relative text-lg leading-relaxed" style={{ color: 'rgba(83,68,59,0.85)' }}>
+                Simple, transparent pricing to help you manage your bookings, clients, and growth with elegance.
+              </p>
+            </div>
 
             {/* Billing Toggle */}
             <div className="inline-flex relative p-1 rounded-full"

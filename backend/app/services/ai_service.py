@@ -81,9 +81,22 @@ def _prepare_square_png(raw: bytes, size: int = 1024) -> bytes:
 
 
 def _save_b64_image(b64_data: str) -> str:
+    from app.services.storage_service import StorageService
+    image_bytes = base64.b64decode(b64_data)
+    storage = StorageService()
+    if storage._configured:
+        key = f"Documents/generated/{uuid_module.uuid4()}.png"
+        storage.client.put_object(
+            Bucket=storage.bucket,
+            Key=key,
+            Body=image_bytes,
+            ContentType="image/png",
+        )
+        return storage._public_url(key)
+    # Local fallback
     STATIC_DIR.mkdir(parents=True, exist_ok=True)
     filename = f"{uuid_module.uuid4()}.png"
-    (STATIC_DIR / filename).write_bytes(base64.b64decode(b64_data))
+    (STATIC_DIR / filename).write_bytes(image_bytes)
     return f"{settings.app_base_url}/static/generated/{filename}"
 
 

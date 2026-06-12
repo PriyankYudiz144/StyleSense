@@ -7,6 +7,7 @@ interface User {
   full_name: string;
   role: 'super_admin' | 'salon_admin' | 'barber';
   salon_id: string | null;
+  avatar_url?: string | null;
 }
 
 interface AuthState {

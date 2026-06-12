@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@/stores/auth.store';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1';
 
@@ -27,11 +28,12 @@ apiClient.interceptors.response.use(
           const { data } = await axios.post(`${API_URL}/auth/refresh`, { refresh_token: refresh });
           localStorage.setItem('access_token', data.access_token);
           localStorage.setItem('refresh_token', data.refresh_token);
+          const store = useAuthStore.getState();
+          if (store.user) store.setAuth(store.user, data.access_token, data.refresh_token);
           original.headers.Authorization = `Bearer ${data.access_token}`;
           return apiClient(original);
         } catch {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+          useAuthStore.getState().clearAuth();
           window.location.href = '/login';
         }
       }

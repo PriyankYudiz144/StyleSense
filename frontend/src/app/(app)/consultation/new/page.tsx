@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Camera,
@@ -38,6 +38,13 @@ export default function NewConsultationPage() {
   const validatePhoto = useValidatePhoto();
   const [validating, setValidating] = useState(false);
 
+  useEffect(() => {
+    if (cameraActive && streamRef.current && videoRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [cameraActive]);
+
   const startCamera = async () => {
     setError('');
     try {
@@ -45,10 +52,6 @@ export default function NewConsultationPage() {
         video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } },
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
       setCameraActive(true);
     } catch {
       setError('Camera access denied. Use file upload instead.');
@@ -64,6 +67,10 @@ export default function NewConsultationPage() {
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
     const v = videoRef.current;
+    if (!v.videoWidth || !v.videoHeight || v.readyState < 2) {
+      setError('Camera not ready yet. Wait a moment and try again.');
+      return;
+    }
     const c = canvasRef.current;
     c.width = v.videoWidth;
     c.height = v.videoHeight;
@@ -95,7 +102,7 @@ export default function NewConsultationPage() {
     try {
       const result = await validatePhoto.mutateAsync(capturedImage);
       if (!result.valid) {
-        setError(result.reason || 'No clear face detected. Please use a photo with a single visible face.');
+        setError(result.reason || 'No clear face detected. Make sure face is well-lit and fully visible, then retake.');
         setValidating(false);
         return;
       }
@@ -113,14 +120,8 @@ export default function NewConsultationPage() {
     try {
       // Upload photo
       setUploadProgress(20);
-      let photoUrl: string;
-      try {
-        const file = dataUrlToFile(capturedImage);
-        photoUrl = await uploadPhoto(file);
-      } catch {
-        // S3 not configured — use data URL directly (dev fallback)
-        photoUrl = capturedImage;
-      }
+      const file = dataUrlToFile(capturedImage);
+      const photoUrl = await uploadPhoto(file);
       setUploadProgress(60);
 
       // Optionally create customer record
@@ -142,8 +143,9 @@ export default function NewConsultationPage() {
 
       router.push(`/consultation/${session.id}/analyzing?gender=${gender}`);
     } catch (e: unknown) {
-      const msg = (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(msg ?? 'Failed to start consultation. Please try again.');
+      const detail = (e as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : 'Failed to start consultation. Please try again.';
+      setError(msg);
       setStep('customer');
     }
   }, [capturedImage, customerName, customerPhone, createSession, createCustomer, router]);
@@ -202,9 +204,14 @@ export default function NewConsultationPage() {
                       justifyContent: 'center',
                     }}
                   >
-                    {cameraActive ? (
-                      <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
-                    ) : (
+                    <video
+                      ref={videoRef}
+                      className="w-full h-full object-cover"
+                      playsInline
+                      muted
+                      style={{ display: cameraActive ? 'block' : 'none' }}
+                    />
+                    {!cameraActive && (
                       <div className="flex flex-col items-center gap-3 text-center p-8">
                         <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(139,75,30,0.1)' }}>
                           <Camera size={32} style={{ color: '#8b4b1e' }} />

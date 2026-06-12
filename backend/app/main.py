@@ -3,11 +3,14 @@ import pathlib
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.router import router
 from app.core.config import settings
 
 STATIC_DIR = pathlib.Path(__file__).parent.parent / "static"
+UPLOAD_DIR = pathlib.Path(__file__).parent.parent / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(title="StyleSense API", version="0.1.0", docs_url="/docs", redoc_url="/redoc")
 
@@ -20,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(router)
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 
 @app.get("/static/generated/{filename}")

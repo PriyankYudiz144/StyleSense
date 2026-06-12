@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { LayoutDashboard, Scissors, Users, Calendar, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Scissors, Users, Calendar, Settings, LogOut, UserCircle } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 
 const NAV_ITEMS = [
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/customers', icon: Users, label: 'Customers' },
   { href: '/sessions', icon: Calendar, label: 'Sessions' },
   { href: '/settings/salon', icon: Settings, label: 'Settings' },
+  { href: '/settings/profile', icon: UserCircle, label: 'Profile' },
 ];
 
 export function Sidebar() {
@@ -54,12 +55,23 @@ export function Sidebar() {
 
       <div className="px-3 py-4" style={{ borderTop: '1px solid rgba(217,194,182,0.3)' }}>
         <div className="flex items-center gap-3 px-3 py-2 mb-1">
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-            style={{ background: '#8b4b1e' }}
-          >
-            {user?.full_name?.[0]?.toUpperCase() ?? 'U'}
-          </div>
+          <Link href="/settings/profile" className="flex-shrink-0">
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={user.full_name}
+                className="w-9 h-9 rounded-full object-cover hover:opacity-80 transition-opacity"
+                style={{ border: '2px solid rgba(139,75,30,0.2)' }}
+              />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold hover:opacity-80 transition-opacity"
+                style={{ background: '#8b4b1e' }}
+              >
+                {user?.full_name?.[0]?.toUpperCase() ?? 'U'}
+              </div>
+            )}
+          </Link>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-on-surface truncate">{user?.full_name}</p>
             <p className="text-xs capitalize truncate" style={{ color: 'rgba(28,28,25,0.45)' }}>

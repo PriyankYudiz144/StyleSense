@@ -250,3 +250,29 @@ async def update_session(
     return SessionOut.model_validate(
         await _fetch_session(session_id, current_user.salon_id, db)
     )
+
+
+@router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_session(
+    session_id: UUID,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> None:
+    result = await db.execute(
+        select(Session)
+        .options(selectinload(Session.hairstyles))
+        .where(Session.id == session_id, Session.salon_id == current_user.salon_id)
+    )
+    session = result.scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    from sqlalchemy import delete as sql_delete
+    # Break circular FK: selected_hairstyle_id → hairstyles.id
+    session.selected_hairstyle_id = None
+    await db.flush()
+    # Delete AI logs and hairstyles before deleting session
+    await db.execute(sql_delete(AIGenerationLog).where(AIGenerationLog.session_id == session_id))
+    await db.execute(sql_delete(Hairstyle).where(Hairstyle.session_id == session_id))
+    await db.flush()
+    await db.delete(session)
+    await db.commit()

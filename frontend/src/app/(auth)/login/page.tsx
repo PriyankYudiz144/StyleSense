@@ -1,9 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Scissors } from 'lucide-react';
 import { apiClient } from '@/lib/api';
@@ -15,11 +15,13 @@ const schema = z.object({
 });
 type Form = z.infer<typeof schema>;
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setAuth } = useAuthStore();
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
+  const resetSuccess = searchParams.get('reset') === 'success';
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({
     resolver: zodResolver(schema),
   });
@@ -60,6 +62,15 @@ export default function LoginPage() {
         <p className="text-sm mb-8" style={{ color: 'rgba(28,28,25,0.55)' }}>
           Sign in to your salon account
         </p>
+
+        {resetSuccess && (
+          <div
+            className="rounded-2xl p-3 text-sm mb-6"
+            style={{ background: 'rgba(34,139,34,0.08)', border: '1px solid rgba(34,139,34,0.2)', color: '#1a7a1a' }}
+          >
+            Password reset successfully. Sign in with your new password.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -145,5 +156,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }

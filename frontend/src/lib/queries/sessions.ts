@@ -136,6 +136,19 @@ export function useCompleteSession(sessionId: string) {
   });
 }
 
+export function useDeleteSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      await apiClient.delete(`/sessions/${sessionId}`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: sessionKeys.all });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
 export function useUploadFinalPhoto(sessionId: string) {
   const qc = useQueryClient();
   return useMutation({

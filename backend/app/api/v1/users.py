@@ -11,7 +11,7 @@ from app.core.deps import CurrentUser, get_session, require_role
 from app.core.security import hash_password
 from app.models.salon import Salon
 from app.models.user import User, UserRole
-from app.schemas.user import UserCreate, UserInvite, UserOut, UserUpdate
+from app.schemas.user import ProfileUpdate, UserCreate, UserInvite, UserOut, UserUpdate
 from app.services.email_service import EmailService
 
 router = APIRouter()
@@ -20,6 +20,23 @@ router = APIRouter()
 @router.get("/me")
 async def get_me(current_user: CurrentUser) -> UserOut:
     return UserOut.model_validate(current_user)
+
+
+@router.patch("/me")
+async def update_me(
+    data: ProfileUpdate,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> UserOut:
+    result = await db.execute(select(User).where(User.id == current_user.id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    for field, value in data.model_dump(exclude_none=True).items():
+        setattr(user, field, value)
+    await db.commit()
+    await db.refresh(user)
+    return UserOut.model_validate(user)
 
 
 @router.get("")
