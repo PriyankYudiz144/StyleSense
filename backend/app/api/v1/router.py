@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import admin, auth, customers, dashboard, salons, sessions, uploads, users
+from app.api.v1 import admin, auth, contact, customers, dashboard, salons, sessions, uploads, users
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(auth.router, prefix="/auth", tags=["auth"])
@@ -11,3 +11,4 @@ router.include_router(sessions.router, prefix="/sessions", tags=["sessions"])
 router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 router.include_router(uploads.router, prefix="/uploads", tags=["uploads"])
 router.include_router(admin.router, prefix="/admin", tags=["admin"])
+router.include_router(contact.router, prefix="/contact", tags=["contact"])

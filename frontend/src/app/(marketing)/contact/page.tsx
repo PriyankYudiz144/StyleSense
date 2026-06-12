@@ -2,14 +2,28 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Scissors, ArrowLeft, Mail, Phone, MapPin, CheckCircle } from 'lucide-react';
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [form, setForm] = useState({ name: '', email: '', company: '', message: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setError('');
+    try {
+      await axios.post(`${API_URL}/contact`, form);
+      setSubmitted(true);
+    } catch {
+      setError('Something went wrong. Please try again or email us directly.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -121,8 +135,17 @@ export default function ContactPage() {
                       placeholder="Tell us about your salon and what you're looking for..."
                       rows={5} className="glass-input resize-none" style={{ height: 'auto' }} />
                   </div>
-                  <button type="submit" className="btn-primary w-full justify-center">
-                    Send message
+                  {error && (
+                    <div className="rounded-2xl p-3 text-sm"
+                      style={{ background: 'rgba(186,26,26,0.08)', border: '1px solid rgba(186,26,26,0.2)', color: '#ba1a1a' }}>
+                      {error}
+                    </div>
+                  )}
+                  <button type="submit" disabled={submitting} className="btn-primary w-full justify-center">
+                    {submitting ? (
+                      <div className="w-4 h-4 border-2 rounded-full animate-spin"
+                        style={{ borderColor: 'rgba(255,255,255,0.3)', borderTopColor: '#fff' }} />
+                    ) : 'Send message'}
                   </button>
                 </form>
               </>
